@@ -9,13 +9,15 @@ export function validateState(value:unknown,bank:Question[]):State{
   if(!object(s)||typeof s.name!=='string'||!s.name.trim()||s.name.length>40)fail();
   if(s.avatar!==null&&(typeof s.avatar!=='string'||s.avatar.length>600000||!/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/]+=*$/.test(s.avatar)))fail();
   if(!int(s.total)||!int(s.correct,0,s.total)||!object(s.seen)||!object(s.wrong))fail();
+  const favorites=s.favorites??{};
+  if(!object(favorites)||Object.entries(favorites).some(([id,v])=>!byId.has(id)||v!==true))fail();
   let seenTotal=0;
   for(const [id,count] of Object.entries(s.seen)){if(!byId.has(id)||!int(count,1)||byId.get(id)!.ungraded)fail();seenTotal+=count;}
   if(seenTotal!==s.total)fail();
   for(const [id,w] of Object.entries(s.wrong)){if(!byId.has(id)||byId.get(id)!.ungraded||!object(w)||!int(w.streak,0,2)||!int(w.count,1,s.seen[id]||0))fail();}
   if(s.session!==null){
     const t=s.session;
-    if(!object(t)||typeof t.id!=='string'||!t.id||t.id.length>100||!['order','random','wrong'].includes(t.mode)||!int(t.chapter,0,6)||!Array.isArray(t.queue)||t.queue.length>bank.length||new Set(t.queue).size!==t.queue.length||!int(t.cursor,0,t.queue.length)||!Array.isArray(t.history)||t.history.length!==t.cursor)fail();
+    if(!object(t)||typeof t.id!=='string'||!t.id||t.id.length>100||!['order','random','wrong','favorites'].includes(t.mode)||!int(t.chapter,0,6)||!Array.isArray(t.queue)||t.queue.length>bank.length||new Set(t.queue).size!==t.queue.length||!int(t.cursor,0,t.queue.length)||!Array.isArray(t.history)||t.history.length!==t.cursor)fail();
     for(const id of t.queue){const q=byId.get(id);if(!q||(t.chapter!==0&&q.chapter!==t.chapter))fail();}
     let graded=0;
     for(const [i,r] of t.history.entries()){
@@ -26,7 +28,7 @@ export function validateState(value:unknown,bank:Question[]):State{
     if(graded>s.total)fail();
   }
   // Keep only known, validated fields instead of importing arbitrary object keys.
-  return {name:s.name,avatar:s.avatar,total:s.total,correct:s.correct,seen:{...s.seen},wrong:Object.fromEntries(Object.entries(s.wrong).map(([id,w])=>[id,{streak:w.streak,count:w.count}])),session:s.session?{id:s.session.id,mode:s.session.mode,chapter:s.session.chapter,queue:[...s.session.queue],cursor:s.session.cursor,history:s.session.history.map(r=>({questionId:r.questionId,answer:r.answer,correct:r.correct,at:r.at}))}:null};
+  return {name:s.name,avatar:s.avatar,total:s.total,correct:s.correct,seen:{...s.seen},favorites:{...favorites},wrong:Object.fromEntries(Object.entries(s.wrong).map(([id,w])=>[id,{streak:w.streak,count:w.count}])),session:s.session?{id:s.session.id,mode:s.session.mode,chapter:s.session.chapter,queue:[...s.session.queue],cursor:s.session.cursor,history:s.session.history.map(r=>({questionId:r.questionId,answer:r.answer,correct:r.correct,at:r.at}))}:null};
 }
 export function packBackup(state:State){return JSON.stringify({app:'python-afuke-practice',format:1,sourceSha256:SOURCE_SHA,exportedAt:new Date().toISOString(),state});}
 export function parseBackup(text:string,bank:Question[]){

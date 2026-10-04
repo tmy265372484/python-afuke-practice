@@ -1,7 +1,7 @@
 export type Question = {id:string; chapter:number; sourceNumber:string; page:number; type:string; text:string; answer:string; canonical:string|string[]; images:string[]; originalImages:string[]; analysisImages:string[]; note:string; ungraded?:boolean};
 export type Result = {answer:string; correct:boolean|null; questionId:string; at:string};
-export type State = {name:string; avatar:string|null; total:number; correct:number; seen:Record<string,number>; wrong:Record<string,{streak:number; count:number}>; session:null|{id:string; mode:string; chapter:number; queue:string[]; cursor:number; history:Result[]}};
-export function initialState(name:string):State {return {name,avatar:null,total:0,correct:0,seen:{},wrong:{},session:null};}
+export type State = {name:string; avatar:string|null; total:number; correct:number; seen:Record<string,number>; favorites:Record<string,true>; wrong:Record<string,{streak:number; count:number}>; session:null|{id:string; mode:string; chapter:number; queue:string[]; cursor:number; history:Result[]}};
+export function initialState(name:string):State {return {name,avatar:null,total:0,correct:0,seen:{},favorites:{},wrong:{},session:null};}
 export function normalize(value:string){
   // Whitespace within quoted strings is meaningful Python output.
   let quote='',out='';const s=value.trim().replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/（/g,'(').replace(/）/g,')').replace(/，/g,',');
@@ -14,8 +14,8 @@ export function grade(q:Question,answer:string):boolean|null{
   return normalize(answer)===normalize(q.answer);
 }
 export function startSession(state:State,bank:Question[],mode:string,chapter:number){
-  if(!['order','random','wrong'].includes(mode))throw Error('练习模式无效');
-  const queue=bank.filter(q=>(!chapter||q.chapter===chapter)&&(mode!=='wrong'||!!state.wrong[q.id])).map(q=>q.id);
+  if(!['order','random','wrong','favorites'].includes(mode))throw Error('练习模式无效');
+  const queue=bank.filter(q=>(!chapter||q.chapter===chapter)&&(mode!=='wrong'||!!state.wrong[q.id])&&(mode!=='favorites'||!!state.favorites[q.id])).map(q=>q.id);
   if(mode==='random')for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
   state.session={id:crypto.randomUUID(),mode,chapter,queue,cursor:0,history:[]};return state;
 }

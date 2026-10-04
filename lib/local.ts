@@ -60,6 +60,9 @@ export async function api<T=Data>(url:string,options?:RequestInit):Promise<T>{
       if(!q||typeof payload.answer!=='string'||payload.answer.length>1000)throw Error('答案无效');
       if(q.type==='choice'&&!/^[A-D]$/.test(payload.answer))throw Error('请选择一个选项');
       result=recordAnswer(state,q,payload.answer);
+    }else if(payload.action==='favorite'){
+      if(!bank.some(q=>q.id===payload.questionId)||typeof payload.value!=='boolean')throw Error('收藏题目无效');
+      if(payload.value)state.favorites[payload.questionId]=true;else delete state.favorites[payload.questionId];
     }else if(payload.action==='profile'){
       if(typeof payload.name!=='string'||!payload.name.trim()||payload.name.trim().length>40)throw Error('昵称须为 1 至 40 个字符');
       state.name=payload.name.trim();
