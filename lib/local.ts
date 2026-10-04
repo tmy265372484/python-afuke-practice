@@ -60,6 +60,11 @@ export async function api<T=Data>(url:string,options?:RequestInit):Promise<T>{
       if(!q||typeof payload.answer!=='string'||payload.answer.length>1000)throw Error('答案无效');
       if(q.type==='choice'&&!/^[A-D]$/.test(payload.answer))throw Error('请选择一个选项');
       result=recordAnswer(state,q,payload.answer);
+    }else if(payload.action==='jump'){
+      const s=state.session;
+      if(!s||payload.sessionId!==s.id||!Number.isInteger(payload.position)||payload.position<s.cursor||payload.position>=s.queue.length)throw Error('题目位置已变化，请重新读取进度');
+      const selected=s.queue[payload.position];
+      s.queue=s.queue.slice(0,s.cursor).concat([selected],s.queue.slice(s.cursor).filter((_,i)=>i!==payload.position-s.cursor));
     }else if(payload.action==='favorite'){
       if(!bank.some(q=>q.id===payload.questionId)||typeof payload.value!=='boolean')throw Error('收藏题目无效');
       if(payload.value)state.favorites[payload.questionId]=true;else delete state.favorites[payload.questionId];

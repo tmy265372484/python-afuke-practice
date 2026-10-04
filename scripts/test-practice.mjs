@@ -10,6 +10,7 @@ attempt(wrong);assert.equal(state.wrong[q.id].streak,0);attempt(q.answer);attemp
 const total=state.total;assert.throws(()=>recordAnswer(state,q,q.answer));assert.equal(state.total,total);
 startSession(state,bank,'random',0);assert.equal(new Set(state.session.queue).size,483);assert.equal(state.session.queue.length,483);
 startSession(state,bank,'order',3);assert.equal(state.session.queue.length,95);assert.equal(state.session.queue[0],'c3-001');
+state.seen['c3-001']=1;startSession(state,bank,'unseen',3);assert.equal(state.session.queue[0],'c3-002');assert.equal(state.session.queue.includes('c3-001'),false);
 startSession(state,bank,'wrong',0);assert.equal(state.session.queue.length,0);
 const ungraded=bank.find(q=>q.ungraded);startSession(state,[ungraded],'order',0);recordAnswer(state,ungraded,'True');assert.equal(state.total,total);
 assert.equal(normalize('[“car”, “truck”, “bus”]'),normalize("['car','truck','bus']"));assert.notEqual(normalize("'a b'"),normalize("'ab'"));

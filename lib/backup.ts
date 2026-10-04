@@ -17,7 +17,7 @@ export function validateState(value:unknown,bank:Question[]):State{
   for(const [id,w] of Object.entries(s.wrong)){if(!byId.has(id)||byId.get(id)!.ungraded||!object(w)||!int(w.streak,0,2)||!int(w.count,1,s.seen[id]||0))fail();}
   if(s.session!==null){
     const t=s.session;
-    if(!object(t)||typeof t.id!=='string'||!t.id||t.id.length>100||!['order','random','wrong','favorites'].includes(t.mode)||!int(t.chapter,0,6)||!Array.isArray(t.queue)||t.queue.length>bank.length||new Set(t.queue).size!==t.queue.length||!int(t.cursor,0,t.queue.length)||!Array.isArray(t.history)||t.history.length!==t.cursor)fail();
+    if(!object(t)||typeof t.id!=='string'||!t.id||t.id.length>100||!['order','random','wrong','favorites','unseen'].includes(t.mode)||!int(t.chapter,0,6)||!Array.isArray(t.queue)||t.queue.length>bank.length||new Set(t.queue).size!==t.queue.length||!int(t.cursor,0,t.queue.length)||!Array.isArray(t.history)||t.history.length!==t.cursor)fail();
     for(const id of t.queue){const q=byId.get(id);if(!q||(t.chapter!==0&&q.chapter!==t.chapter))fail();}
     let graded=0;
     for(const [i,r] of t.history.entries()){

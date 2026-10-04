@@ -14,8 +14,8 @@ export function grade(q:Question,answer:string):boolean|null{
   return normalize(answer)===normalize(q.answer);
 }
 export function startSession(state:State,bank:Question[],mode:string,chapter:number){
-  if(!['order','random','wrong','favorites'].includes(mode))throw Error('练习模式无效');
-  const queue=bank.filter(q=>(!chapter||q.chapter===chapter)&&(mode!=='wrong'||!!state.wrong[q.id])&&(mode!=='favorites'||!!state.favorites[q.id])).map(q=>q.id);
+  if(!['order','random','wrong','favorites','unseen'].includes(mode))throw Error('练习模式无效');
+  const queue=bank.filter(q=>(!chapter||q.chapter===chapter)&&(mode!=='wrong'||!!state.wrong[q.id])&&(mode!=='favorites'||!!state.favorites[q.id])&&(mode!=='unseen'||!state.seen[q.id])).map(q=>q.id);
   if(mode==='random')for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
   state.session={id:crypto.randomUUID(),mode,chapter,queue,cursor:0,history:[]};return state;
 }
