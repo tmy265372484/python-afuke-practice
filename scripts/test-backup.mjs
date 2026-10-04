@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {initialState,startSession,recordAnswer} from '../lib/practice.ts';
+import {parseBackup,packBackup,validateState} from '../lib/backup.ts';
+const bank=JSON.parse(readFileSync(new URL('../data/questions.json',import.meta.url),'utf8'));
+const state=initialState('测试同学');startSession(state,bank,'order',0);recordAnswer(state,bank[0],bank[0].answer==='A'?'B':'A');
+assert.deepEqual(parseBackup(packBackup(state),bank),state);
+for(const bad of [{...state,total:-1},{...state,correct:5},{...state,avatar:'javascript:alert(1)'},{...state,seen:{fake:1}},{...state,wrong:{[bank[0].id]:{streak:3,count:1}}},{...state,session:{...state.session,cursor:99}}])assert.throws(()=>validateState(bad,bank));
+assert.throws(()=>parseBackup('{}',bank));assert.throws(()=>parseBackup('bad json',bank));
+assert.throws(()=>parseBackup(packBackup(state).replace('c077cf','000000'),bank));
+console.log('PASS: backup roundtrip, source version, malformed/corrupt records, unsafe avatars, invalid streak/history rejection');
